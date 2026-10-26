@@ -1,0 +1,53 @@
+name: Build NERO Proxy APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      # NOTE: android-actions/setup-android@v3 failed on run 40382583421, so
+      # use the GitHub-hosted runner's preinstalled Android SDK instead.
+      - name: Install Android platform, build tools and NDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/cmdline-tools" || true
+          SDKMANAGER="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0" "ndk;27.0.12077973"
+      - name: Fetch native engine (hev-socks5-tunnel)
+        run: |
+          chmod +x setup.sh
+          ./setup.sh
+          ls app/src/main/jni/hev-socks5-tunnel
+      - name: Download Gradle 8.9
+        run: |
+          curl -L -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.9/bin" >> "$GITHUB_PATH"
+      - name: Build debug APK
+        env:
+          ANDROID_NDK_HOME: "$ANDROID_HOME/ndk/27.0.12077973"
+        run: gradle assembleDebug --no-daemon
+      - name: Publish APK to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          ls -lh "$APK"
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            gh release upload v1.0.0 "$APK" --clobber
+          else
+            gh release create v1.0.0 "$APK" --title "NERO Proxy 1.0.0" --notes "Full Super Proxy-style proxy app, free: unlimited HTTP/SOCKS5 profiles with export/import, TLS to proxy, app filter, Quick Settings tile, dark mode, real-time logs, stats and latency. Full-device VPN (VpnService + hev-socks5-tunnel + LocalBridge). TCP only; UDP/QUIC/IPv6 not supported. Install and test on a real phone with your own proxy."
+          fi
