@@ -20,8 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -113,7 +113,7 @@ fun App(vm: ProxyViewModel) {
             NavigationBar {
                 NavigationBarItem(tab == Tab.HOME, { tab = Tab.HOME }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
                 NavigationBarItem(tab == Tab.PROFILES, { tab = Tab.PROFILES }, icon = { Icon(Icons.Default.List, null) }, label = { Text("Profiles") })
-                NavigationBarItem(tab == Tab.LOGS, { tab = Tab.LOGS }, icon = { Icon(Icons.Default.Description, null) }, label = { Text("Logs") })
+                NavigationBarItem(tab == Tab.LOGS, { tab = Tab.LOGS }, icon = { Icon(Icons.Default.Info, null) }, label = { Text("Logs") })
                 NavigationBarItem(tab == Tab.SETTINGS, { tab = Tab.SETTINGS }, icon = { Icon(Icons.Default.Settings, null) }, label = { Text("Settings") })
             }
         }
